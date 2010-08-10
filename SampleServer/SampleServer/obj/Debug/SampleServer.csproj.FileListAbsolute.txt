@@ -1,0 +1,10 @@
+E:\MultiSampler\SampleServer\obj\Debug\ResolveAssemblyReference.cache
+E:\MultiSampler\SampleServer\bin\Debug\SampleServer.exe
+E:\MultiSampler\SampleServer\bin\Debug\SampleServer.pdb
+E:\MultiSampler\SampleServer\obj\Debug\SampleServer.exe
+E:\MultiSampler\SampleServer\obj\Debug\SampleServer.pdb
+E:\SampleServer\SampleServer\obj\Debug\SampleServer.exe
+E:\SampleServer\SampleServer\obj\Debug\SampleServer.pdb
+E:\SampleServer\SampleServer\bin\Debug\SampleServer.exe
+E:\SampleServer\SampleServer\bin\Debug\SampleServer.pdb
+E:\SampleServer\SampleServer\obj\Debug\ResolveAssemblyReference.cache

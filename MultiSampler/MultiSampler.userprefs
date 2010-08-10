@@ -1,0 +1,26 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" ctype="Workspace" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="SampleServer/Server.cs" ctype="Workbench">
+    <Files>
+      <File FileName="MultiSampler/HallEffectReader.cs" Line="50" Column="79" />
+      <File FileName="MultiSampler/PotReader.cs" Line="40" Column="65" />
+      <File FileName="MultiSampler/TaskItem.cs" Line="116" Column="4" />
+      <File FileName="SampleServer/Server.cs" Line="1" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="MultiSampler" expanded="True">
+            <Node name="References" expanded="True" />
+          </Node>
+          <Node name="SampleServer" expanded="True">
+            <Node name="Server.cs" selected="True" />
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="ClassPad">
+        <State expanded="True" selected="True" />
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+</Properties>
