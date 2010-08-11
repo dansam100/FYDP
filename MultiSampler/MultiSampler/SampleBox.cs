@@ -100,7 +100,6 @@ namespace MultiSampler
         public override string ToString()
         {
             string result = string.Empty;
-
             for (int i = 0; i <= AveragingDepth; i++)
             {
                 //result += ' '.Span(i*3)+Depth[i].ToString(true);
