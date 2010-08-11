@@ -44,8 +44,8 @@ namespace MultiSampler
                         {
                             data = reader.ReadSingleSample();
                             angle = 60.5 * data[0] - 150;
-                            Console.Write(string.Format("{0:0.00}\r", angle));
-                            base.TriggerReadEvent(angle);
+                            //Console.Write(string.Format("{0:0.00}\r", angle));
+                            samplebox.Add(angle);
                         }
                     }
                 }

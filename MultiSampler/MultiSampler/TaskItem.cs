@@ -5,6 +5,7 @@ using System.Text;
 using NationalInstruments.DAQmx;
 using System.Net.Sockets;
 using System.ComponentModel;
+using System.Collections;
 
 namespace MultiSampler
 {
@@ -21,6 +22,8 @@ namespace MultiSampler
         protected const string targetIP = "localhost";
         protected const int port = 9191;
 
+        protected SampleBox samplebox;
+
         public event DataReadEventHandler OnEventRead;
         public event CharReadEventHandler OnCharRead;
 
@@ -28,6 +31,9 @@ namespace MultiSampler
         {
             this.Name = name;
             this.connection = new TcpClient();
+
+            this.samplebox = new SampleBox(8, 0);
+            this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(samplebox_OnAverageAcquired);
 
             this.OnEventRead += new DataReadEventHandler(TaskItem_OnEventRead);
             this.OnCharRead += new CharReadEventHandler(TaskItem_OnCharRead);
@@ -96,6 +102,13 @@ namespace MultiSampler
             catch (Exception e)
             {
             }
+        }
+
+        void samplebox_OnAverageAcquired(double[] output)
+        {
+            System.Console.WriteLine("Results:\n");
+            System.Console.WriteLine(samplebox);
+            //this.TriggerReadEvent(output.FirstOrDefault());
         }
 
         protected void TriggerReadEvent(double data)
@@ -176,5 +189,46 @@ namespace MultiSampler
 			}
 			return true;
 		}
+
+        public static IEnumerable<double> ToArray(this Stack<double> stack, int count)
+        {
+            double[] array = stack.ToArray<double>();
+            double[] result = new double[count];
+            Array.Copy(array, 0, result, 0, count);
+            return result;
+        }
+
+        public static double[] Linearize(this double[] array)
+        {
+            int size = array.Length - 1;
+            if (array.Length > 1)
+            {
+                double[] results = new double[size];
+                for (int i = 0; (i + 1) < array.Length; i++)
+                {
+                    results[i] = 0.5 * (array[i] + array[i + 1]);
+                }
+                return results;
+            }
+            return array;
+        }
+
+        public static string ToString(this double[] array, bool yes)
+        {
+            String results = String.Empty;
+            for (int i = 0; i < array.Length; i++)
+            {
+               results += String.Format("{0}{1}", array[i], ' '.Span(6));
+            }
+            results += "\n";
+            return results;
+        }
+
+        public static string Span(this char input, int count)
+        {
+            string results = string.Empty;
+            for (int i = 0; i < count; i++) { results += input; }
+            return results;
+        }
     }
 }

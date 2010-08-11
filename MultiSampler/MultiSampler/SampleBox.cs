@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MultiSampler
 {
-    public delegate void AverageAcquiredHandler(double[] values, double output);
+    public delegate void AverageAcquiredHandler(double[] output);
 
     public class SampleBox
     {
@@ -13,6 +13,9 @@ namespace MultiSampler
 
         public int AveragingDepth { get; set; }
         public int Size { get; set; }
+        public int Count { get; set; }
+        public bool EnableAveraging { get; set; }
+        public double[][] Depth;
         public event AverageAcquiredHandler OnAverageAcquired;
 
         /// <summary>
@@ -23,54 +26,88 @@ namespace MultiSampler
         public SampleBox(int size, int depth)
         {
             this.AveragingDepth = depth;
+            this.EnableAveraging = true;
             if (size >= depth + 1)
             {
                 this.Size = size;
+                this.Count = 0;
                 contents = new Stack<double>(Size);
+                Depth = new double[depth+1][];
             }
             else throw new Exception("Size must be greater than depth!");
         }
 
         public void Add(double sample)
         {
-            contents.Push(sample);
+            lock (this)
+            {
+                contents.Push(sample);
+                if (Count < Size) { Count++; }
+                //this.PerformAveraging();
+                this.Regress();
+            }
         }
 
         /// <summary>
-        /// Perform an average of the current values in the samplebox
+        /// Perform an average of the current values in the samplebox to linearize the system
         /// </summary>
-        /// <param name="indices"></param>
-        /// <returns></returns>
-        internal double[] PerformAverage(params int[] indices)
+        internal void PerformAveraging()
         {
-            double[] results;
-            if (indices.Length > 0)
+            int i = 1;
+            Depth[0] = (double[])contents.ToArray(Count);
+            while (i <= AveragingDepth)
             {
-                results = new double[indices.Length];
-                int j = 0;
-                double[] array = contents.ToArray<double>();
-                foreach(int i in indices)
-                {
-                    int which = (i % 2 != 0) ? -1 : 1;
-                    if( (i+which) < array.Length){
-                        results[j] = 0.5*(array[i] + array(i+which));
-                    }
-                }
-                return results;
+                Depth[i] = Depth[i - 1].Linearize();
+                i++;
             }
+            if (this.OnAverageAcquired != null && EnableAveraging)
+                this.OnAverageAcquired(Depth[i - 1]);
             else
+                this.OnAverageAcquired(Depth[0]);
+        }
+
+
+        /// <summary>
+        /// Use regression to linearize the system
+        /// </summary>
+        internal void Regress()
+        {
+            double yAvg = 0, xAvg = 0;
+            double[] values = (double[])contents.ToArray(Count);
+            IEnumerable<int> xValues = (IEnumerable<int>)Enumerable.Range(0, values.Length);
+
+            yAvg = values.Average();
+            xAvg = xValues.Average();
+
+            double v1 = 0, v2 = 0;
+
+            for (int x = 0; x < values.Length; x++)
             {
-                results = new double[this.Size];
-                double[] array = contents.ToArray<double>();
-                int j = 0;
-                foreach (int i in this.contents)
-                {
-                    if (i < array.Length - 1)
-                    {
-                        results[j] = 0.5 * (contents.Select<double>(i) + contents.Select<double>(i + which));
-                    }
-                }
+                v1 += (x - xAvg) * (values[x] - yAvg);
+                v2 += Math.Pow(x - xAvg, 2);
             }
+
+            double a = v1 / v2;
+            double b = yAvg - a * xAvg;
+            Depth[0] = new double[values.Length];
+            for (int x = 0; x < values.Length; x++)
+            {
+                Depth[0][x] = a * x + b;
+            }
+            this.OnAverageAcquired(Depth[0]);
+        }
+
+        public override string ToString()
+        {
+            string result = string.Empty;
+
+            for (int i = 0; i <= AveragingDepth; i++)
+            {
+                //result += ' '.Span(i*3)+Depth[i].ToString(true);
+                result += Depth[i].ToString(true);
+            }
+             
+            return result;
         }
     }
 }

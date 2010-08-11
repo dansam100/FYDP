@@ -86,12 +86,14 @@ namespace MultiSampler
 								if(northPulse > southPulse){ 
                                     //base.TriggerReadEvent((northPulse+southPulse).Milliseconds);
                                     Console.WriteLine("{0}", (northPulse + southPulse).Milliseconds);
+                                    this.samplebox.Add((northPulse + southPulse).Milliseconds);
                                     //Console.WriteLine("Speed: {0}", speed);
                                 }
 								else { 
                                     //base.TriggerReadEvent(-(northPulse+southPulse).Milliseconds);
                                     //Console.WriteLine("Speed: -{0}", speed);
                                     Console.WriteLine("{0}", -(northPulse + southPulse).Milliseconds);
+                                    this.samplebox.Add(-(northPulse + southPulse).Milliseconds);
                                 }
                             }
                         }

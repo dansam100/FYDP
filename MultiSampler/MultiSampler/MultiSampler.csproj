@@ -54,6 +54,7 @@
     <Compile Include="PotReader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadTester.cs" />
     <Compile Include="SampleBox.cs" />
     <Compile Include="Sampler.cs" />
     <Compile Include="TaskItem.cs" />

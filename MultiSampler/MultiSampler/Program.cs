@@ -11,7 +11,7 @@ namespace MultiSampler
         {
             MultiSampler ms = new MultiSampler();
             bool exit = false;
-            Console.WriteLine("Started client system.\nAwaiting input:");
+            Console.WriteLine("Started client system.");
             try
             {
                 ms.BeginSampling();
