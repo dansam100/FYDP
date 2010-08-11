@@ -12,9 +12,11 @@ namespace MultiSampler
     public class HallEffectReader : TaskItem
     {
         public const int SHUNT_RESISTANCE = 249;
+
         public const string CHANNEL = "Dev1/ai2";
 		
-		public const double REFERENCE_VALUE = 0.0001;		
+		public const double REFERENCE_VALUE = 0.0001;   //external shunt resistance
+        public const double WHEEL_RADIUS = 0.3;         //wheel radius in meters
 
         public HallEffectReader(string name) : base(name){}
 
@@ -48,11 +50,13 @@ namespace MultiSampler
 					 southPulse = new TimeSpan(0);
 			DateTime lastPulse  = DateTime.Now;
 			
-			while (!worker.CancellationPending){
+			while (!worker.CancellationPending)
+            {
                 double[] previous = null;
                 try{
                     //this.Connect();
-                    using (myTask = new Task()){
+                    using (myTask = new Task())
+                    {
                         //Create a virtual channel
                         myTask.AIChannels.CreateCurrentChannel(CHANNEL, Name,
                             AITerminalConfiguration.Rse, Convert.ToDouble(-0.004),
@@ -64,36 +68,37 @@ namespace MultiSampler
                         myTask.Control(TaskAction.Verify);
 
                         //keep reading
-                        while (!worker.CancellationPending){
+                        while (!worker.CancellationPending)
+                        {
                             double[] data = reader.ReadSingleSample();
 
                             //check if sample is different.
-                            if (!data.InSampleWindow(previous)){
-                                previous = data;
-
+                            if (!data.InSampleWindow(previous))
+                            {
 								if(data.LessThan(REFERENCE_VALUE)) {  
-                                    southPulse = DateTime.Now - lastPulse;
-                                    Console.WriteLine("it's north!");
+                                    southPulse = DateTime.Now - lastPulse; Console.WriteLine("it's north!");
                                 }
-								else { 
-                                    northPulse = DateTime.Now - lastPulse;
-                                    Console.WriteLine("it's south!");
+								else{ 
+                                    northPulse = DateTime.Now - lastPulse;Console.WriteLine("it's south!");
                                 }
-
+                                
+                                //assign reference values
+                                previous = data;
 								lastPulse = DateTime.Now;
-                                double speed = 1 / ((northPulse + southPulse).Milliseconds);
 
+                                //check round-trip time in ms.
+                                TimeSpan elapsed = northPulse + southPulse;
+                                //calculate speed in rev/ms
+                                double revPms = 1 / (elapsed.Milliseconds);
+
+                                //check direction
 								if(northPulse > southPulse){ 
-                                    //base.TriggerReadEvent((northPulse+southPulse).Milliseconds);
-                                    Console.WriteLine("{0}", (northPulse + southPulse).Milliseconds);
-                                    this.samplebox.Add((northPulse + southPulse).Milliseconds);
-                                    //Console.WriteLine("Speed: {0}", speed);
+                                    Console.WriteLine("{0}", elapsed.Milliseconds);
+                                    this.samplebox.Add(elapsed.Milliseconds/1000);
                                 }
 								else { 
-                                    //base.TriggerReadEvent(-(northPulse+southPulse).Milliseconds);
-                                    //Console.WriteLine("Speed: -{0}", speed);
-                                    Console.WriteLine("{0}", -(northPulse + southPulse).Milliseconds);
-                                    this.samplebox.Add(-(northPulse + southPulse).Milliseconds);
+                                    Console.WriteLine("{0}", -1*elapsed.Milliseconds);
+                                    this.samplebox.Add(-1*elapsed.Milliseconds/1000);
                                 }
                             }
                         }

@@ -43,8 +43,8 @@ namespace MultiSampler
             {
                 contents.Push(sample);
                 if (Count < Size) { Count++; }
-                //this.PerformAveraging();
-                this.Regress();
+                this.PerformAveraging();
+                //this.Regress();
             }
         }
 

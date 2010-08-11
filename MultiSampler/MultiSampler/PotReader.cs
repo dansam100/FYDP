@@ -43,14 +43,14 @@ namespace MultiSampler
                         while(!worker.CancellationPending)
                         {
                             data = reader.ReadSingleSample();
-                            angle = 60.5 * data[0] - 150;
-                            //Console.Write(string.Format("{0:0.00}\r", angle));
+                            angle = 60.5 * data[0] - 150; //Console.Write(string.Format("{0:0.00}\r", angle));
                             samplebox.Add(angle);
                         }
                     }
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("{0} Read Failed.\nReason: {1}", Name, e);
                 }
             }
         }

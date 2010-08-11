@@ -32,7 +32,7 @@ namespace MultiSampler
             this.Name = name;
             this.connection = new TcpClient();
 
-            this.samplebox = new SampleBox(8, 0);
+            this.samplebox = new SampleBox(5, 3);
             this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(samplebox_OnAverageAcquired);
 
             this.OnEventRead += new DataReadEventHandler(TaskItem_OnEventRead);
@@ -40,7 +40,7 @@ namespace MultiSampler
         }
 
         public abstract void DoWork(BackgroundWorker worker);
-        public abstract void Test(BackgroundWorker worder);
+        public abstract void Test(BackgroundWorker worker);
 
         protected void Connect()
         {
@@ -136,6 +136,11 @@ namespace MultiSampler
     /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Print an array in some desired format
+        /// </summary>
+        /// <param name="array">array to print</param>
+        /// <returns>Desired format</returns>
         public static string ToFormattedString(this double[] array)
         {
             string result = "";
@@ -170,6 +175,13 @@ namespace MultiSampler
         }
         */
 
+
+        /// <summary>
+        /// Checks if the difference between the contents of 'array' and 'other' are within the same window.
+        /// </summary>
+        /// <param name="array">array to check</param>
+        /// <param name="other">values to check against</param>
+        /// <returns>true if they are within the same sample window</returns>
         public static bool InSampleWindow(this double[] array, double[] other)
         {
             if (array != null && other != null)
@@ -182,6 +194,12 @@ namespace MultiSampler
             return false;
         }
 		
+        /// <summary>
+        /// Checks if the values inside 'array' are less than that of 'value'
+        /// </summary>
+        /// <param name="array">the array of values to check</param>
+        /// <param name="value">the value to compare against</param>
+        /// <returns>true if all elements of 'array' are less than that of 'value'</returns>
 		public static bool LessThan(this double[] array, double value)
 		{
 			foreach(double data in array){
@@ -190,6 +208,12 @@ namespace MultiSampler
 			return true;
 		}
 
+        /// <summary>
+        /// Slice a given stack into a 'count' sized array.
+        /// </summary>
+        /// <param name="stack">stack containing array of doubles</param>
+        /// <param name="count">size to slice stack into</param>
+        /// <returns>array of containing 'count' elements from 'stack'</returns>
         public static IEnumerable<double> ToArray(this Stack<double> stack, int count)
         {
             double[] array = stack.ToArray<double>();
@@ -198,6 +222,12 @@ namespace MultiSampler
             return result;
         }
 
+        /// <summary>
+        /// Computes averages of values in the array.
+        /// Performs an average of each successive 2 elements
+        /// </summary>
+        /// <param name="array">array of values to average</param>
+        /// <returns>an array of computed averages</returns>
         public static double[] Linearize(this double[] array)
         {
             int size = array.Length - 1;
@@ -213,6 +243,12 @@ namespace MultiSampler
             return array;
         }
 
+        /// <summary>
+        /// An array tostring override.
+        /// </summary>
+        /// <param name="array">the array to format</param>
+        /// <param name="yes">dummy override parameter</param>
+        /// <returns>string of formatted output</returns>
         public static string ToString(this double[] array, bool yes)
         {
             String results = String.Empty;
@@ -224,10 +260,16 @@ namespace MultiSampler
             return results;
         }
 
-        public static string Span(this char input, int count)
+        /// <summary>
+        /// Does a multiplier on a character to create a string of length 'count'.
+        /// </summary>
+        /// <param name="input">the character to expand</param>
+        /// <param name="size">the length to expand to</param>
+        /// <returns>string containing 'count' characters of 'input'</returns>
+        public static string Span(this char input, int size)
         {
             string results = string.Empty;
-            for (int i = 0; i < count; i++) { results += input; }
+            for (int i = 0; i < size; i++) { results += input; }
             return results;
         }
     }
