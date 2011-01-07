@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="MultiSampler">
+</Property><Property Name="Solution File" Value="C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\MultiSampler.sln">
+</Property><Property Name="User Options File" Value="C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\MultiSampler.suo">
+</Property><Property Name="Date" Value="August-21-10">
+</Property><Property Name="Time" Value="0:46 AM">
+</Property></Properties><Event ErrorLevel="0" Project="" Source="MultiSampler.sln" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler.sln">
+</Event><Event ErrorLevel="0" Project="" Source="MultiSampler.suo" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler.suo">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\MultiSampler.csproj" Description="Project file successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\MultiSampler.csproj">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\HallEffectReader.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\HallEffectReader.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\MultiSampler.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\MultiSampler.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\PotReader.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\PotReader.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\Program.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\Program.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\Properties\AssemblyInfo.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\Properties\AssemblyInfo.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\ReadTester.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\ReadTester.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\SampleBox.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\SampleBox.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\Sampler.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\Sampler.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\TaskItem.cs" Description="File successfully backed up as C:\Users\wr3k4gE\Documents\Repositories\fydp\MultiSampler\Backup\MultiSampler\TaskItem.cs">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\MultiSampler.csproj" Description="Project converted successfully">
+</Event><Event ErrorLevel="3" Project="MultiSampler" Source="MultiSampler\MultiSampler.csproj" Description="Converted">
+</Event><Event ErrorLevel="0" Project="" Source="MultiSampler.sln" Description="Solution converted successfully">
+</Event><Event ErrorLevel="3" Project="" Source="MultiSampler.sln" Description="Converted">
+</Event><Event ErrorLevel="0" Project="MultiSampler" Source="MultiSampler\MultiSampler.csproj" Description="Scan complete: Upgrade not required for project files.">
+</Event></UpgradeLog>
