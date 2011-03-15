@@ -14,16 +14,11 @@ namespace MultiSampler
         public const string CHANNEL = "Dev1/ai1";
         
         public PotReader(string name) : base(name) { this.Channel = CHANNEL; }
-
         public PotReader(string name, string channel) : base(name, channel) { }
+
 
         Timer timer = new Timer();
         bool sendData = false;
-
-        public override void Test(BackgroundWorker worder)
-        {
-            throw new NotImplementedException();
-        }
 
         public override void DoWork(BackgroundWorker worker)
         {
@@ -48,7 +43,8 @@ namespace MultiSampler
                         //Verify the Task
                         myTask.Control(TaskAction.Verify);
 
-
+                        //completed initialization.
+                        //Now to read some stuff
                         System.Console.WriteLine("Initialized DAQ stuff");
 
                         double[] data;
@@ -59,10 +55,22 @@ namespace MultiSampler
 
                             data = reader.ReadSingleSample();
 
-                            angle = -(data[0]/(4.4/270) - 270/2); //Console.Write(string.Format("{0:0.00}\r", angle));
+                            angle = -(data[0]/(4.4/270) - 270/2);
+                            //Console.Write(string.Format("{0:0.00}\r", angle));
+
+                            base.TriggerReadEvent(angle);
+                            System.Console.Write("\rSending {0:0.00}", Math.Round(angle, 2));
+                            
+                            //NOTE: Looks like we don't need this part afterall.
+                            //I made the mistake of recreating the network stream everytime we wanted
+                            //to send a flipping value across...wtf right?
+                            /*
                             byte[] dataBytes = BitConverter.GetBytes(Math.Round(angle, 2));
                             System.Console.Write("\rSending {0:0.00}", Math.Round(angle, 2));
                             stream.Write(dataBytes, 0, sizeof(double));
+                            stream.Flush();
+                            */
+
                             sendData = false;
                         }
                     }
@@ -73,10 +81,6 @@ namespace MultiSampler
                     Console.WriteLine("{0} Read Failed.\nReason: {1}", Name, e);
                 }
             }
-        }
-
-        protected override void SampleBox_DataAcquired(double[] output)
-        {
         }
 
         void timer_Tick(object sender, EventArgs e)

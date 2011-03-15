@@ -14,6 +14,9 @@ namespace MultiSampler
     
     public abstract class TaskItem
     {
+        public const string DEFAULT_IP = "127.0.0.1";
+        public const int DEFAULT_PORT = 9191;
+        
         public string Name{ get; set; }
         public string Channel { get; set; }
 
@@ -21,8 +24,8 @@ namespace MultiSampler
         protected TcpClient connection;
         protected NetworkStream stream;
         
-        protected const string targetIP = "127.0.0.1";
-        protected const int port = 9191;
+        protected string TargetIP { get; set; }
+        protected int Port { get; set; }
 
         protected SampleBox samplebox;
 
@@ -31,19 +34,20 @@ namespace MultiSampler
 
         public TaskItem(string name)
         {
+            this.TargetIP = DEFAULT_IP;
+            this.Port = DEFAULT_PORT;
             this.Name = name;
+
+            //tcp connection client
             this.connection = new TcpClient();
 
             this.samplebox = new SampleBox(5, 3);
 
-            //TODO: this is for testing. remove later.
-            //this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(samplebox_OnAverageAcquired);
-
-            //TODO: actual functionality. re-enable
+            //get the sampled values. this can be left to the derived classes.
             this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(SampleBox_DataAcquired);
 
             this.OnEventRead += new DataReadEventHandler(TaskItem_OnEventRead);
-            this.OnCharRead += new CharReadEventHandler(TaskItem_OnCharRead);
+            this.OnCharRead += new CharReadEventHandler(TaskItem_OnEventCharRead);
         }
 
         public TaskItem(string name, string channel)  : this(name)
@@ -51,9 +55,16 @@ namespace MultiSampler
             this.Channel = channel;
         }
 
-        public abstract void DoWork(BackgroundWorker worker);
-        public abstract void Test(BackgroundWorker worker);
+        public TaskItem(string name, string channel, string targetIP, int port)
+            : this(name, channel)
+        {
+            this.TargetIP = targetIP;
+            this.Port = port;
+        }
 
+        /// <summary>
+        /// Connect to server
+        /// </summary>
         protected void Connect()
         {
             while (!this.connection.Connected)
@@ -65,7 +76,7 @@ namespace MultiSampler
                         this.connection.Close();
                         this.connection = new TcpClient();
                     }
-                    connection.Connect(targetIP, port);
+                    connection.Connect(TargetIP, Port);
                     stream = connection.GetStream();
                 }
                 catch (Exception e)
@@ -75,23 +86,56 @@ namespace MultiSampler
             }
         }
 
+        /// <summary>
+        /// Do work
+        /// </summary>
+        /// <param name="worker"></param>
+        public abstract void DoWork(BackgroundWorker worker);
+
+        /// <summary>
+        /// For testing purposes
+        /// </summary>
+        /// <param name="worker"></param>
+        public virtual void Test(BackgroundWorker worker)
+        {
+            ConsoleKeyInfo key;
+            try
+            {
+                this.Connect();
+                ASCIIEncoding ascii = new ASCIIEncoding();
+                byte[] data = new byte[64];
+                while (true)
+                {
+                    key = Console.ReadKey(true);
+                    data = ascii.GetBytes(new char[] { key.KeyChar });
+                    TriggerReadEvent(data);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+
+        /// <summary>
+        /// Read handlers
+        /// </summary>
+        /// <param name="data"></param>
         protected virtual void TaskItem_OnEventRead(double data)
         {
             try
             {
                 if (connection.Connected){
-                    NetworkStream stream = connection.GetStream();
-                    ASCIIEncoding ascii = new ASCIIEncoding();
-                    byte[] buff = new byte[128];
                     try
                     {
-                        //string outval = string.Format("{0:0.00}\0", data);
-                        string outval = string.Format("{0}\0", (int)data);
-                        buff = ascii.GetBytes(outval);
-                        stream.Write(buff, 0, outval.Length);
+                        byte[] dataBytes = BitConverter.GetBytes(Math.Round(data, 2));
+                        stream.Write(dataBytes, 0, dataBytes.Length);
                         stream.Flush();
                     }
-                        catch (Exception e){ Console.WriteLine(e);   
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
                     }
                 }
                 else Connect();
@@ -100,8 +144,7 @@ namespace MultiSampler
                 Console.WriteLine("Unable to transmit data to server!\nReason: {0}", e);
             }
         }
-
-        public void TaskItem_OnCharRead(byte[] data)
+        public void TaskItem_OnEventCharRead(byte[] data)
         {
             try
             {
@@ -109,7 +152,7 @@ namespace MultiSampler
                 {
                     try
                     {
-                        stream.Write(data, 0, 1);
+                        stream.Write(data, 0, data.Length);
                         stream.Flush();
                     }
                     catch (Exception e){}
@@ -122,8 +165,7 @@ namespace MultiSampler
         }
 
 
-        protected abstract void SampleBox_DataAcquired(double[] output);
-        void samplebox_OnAverageAcquired(double[] output)
+        protected virtual void SampleBox_DataAcquired(double[] output)
         {
             System.Console.WriteLine("Results:\n");
             System.Console.WriteLine(samplebox);

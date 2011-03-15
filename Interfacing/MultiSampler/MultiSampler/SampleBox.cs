@@ -6,10 +6,12 @@ using System.Text;
 namespace MultiSampler
 {
     public delegate void AverageAcquiredHandler(double[] output);
+    public enum AveragingType { Regression, Polynomial }
 
     public class SampleBox
     {
         private Stack<double> contents;
+        public AveragingType AveragingType { get; set; }
 
         public int AveragingDepth { get; set; }
         public int Size { get; set; }
@@ -26,6 +28,8 @@ namespace MultiSampler
         public SampleBox(int size, int depth)
         {
             this.AveragingDepth = depth;
+            AveragingType = AveragingType.Polynomial;
+
             this.EnableAveraging = true;
             if (size >= depth + 1)
             {
@@ -44,8 +48,20 @@ namespace MultiSampler
                 contents.Push(sample);
                 if (Count < Size) { Count++; }
 
-                this.PerformAveraging();
-                //this.Regress();
+                if (this.EnableAveraging)
+                {
+                    switch (AveragingType)
+                    {
+                        case AveragingType.Polynomial:
+                            this.PerformAveraging();
+                            break;
+                        case AveragingType.Regression:
+                            this.Regress();
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
 
@@ -66,7 +82,6 @@ namespace MultiSampler
             else
                 this.OnAverageAcquired(Depth[0]);
         }
-
 
         /// <summary>
         /// Use regression to linearize the system

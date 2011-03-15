@@ -8,7 +8,7 @@ namespace MultiSampler.Readers
 {
     public class ButtonReader : TaskItem
     {
-        public new const string CHANNEL = "Dev1/ai3";
+        public const string CHANNEL = "Dev1/ai3";
 
         public ButtonReader(string name) : base(name) { this.Channel = CHANNEL; }
 
