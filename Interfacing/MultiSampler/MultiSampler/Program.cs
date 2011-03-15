@@ -15,7 +15,10 @@ namespace MultiSampler
             try
             {
                 ms.BeginSampling();
-                while (true);
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
                 /*
                 while (!exit)
                 {

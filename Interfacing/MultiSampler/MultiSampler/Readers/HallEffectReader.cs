@@ -6,6 +6,7 @@ using NationalInstruments.DAQmx;
 using System.ComponentModel;
 using System.Net.Sockets;
 using System.IO;
+using System.Timers;
 
 namespace MultiSampler
 {
@@ -13,7 +14,7 @@ namespace MultiSampler
     {
         public const int SHUNT_RESISTANCE = 249;
 
-        public const string CHANNEL = "Dev1/ai2";
+        public const string CHANNEL = "Dev1/ai1";
         
         public const double REFERENCE_VALUE = 0.0001;   //external shunt resistance
         public const double WHEEL_RADIUS = 0.3;         //wheel radius in meters
@@ -22,6 +23,8 @@ namespace MultiSampler
 
         public HallEffectReader(string name, string channel) : base(name, channel) { }
 
+        Timer timer = new Timer();
+        int pulses = 0;
 
         public override void Test(BackgroundWorker worker)
         {
@@ -66,29 +69,42 @@ namespace MultiSampler
                                 Convert.ToDouble(0.004), SHUNT_RESISTANCE, AICurrentUnits.Amps);
 
                         AnalogMultiChannelReader reader = new AnalogMultiChannelReader(myTask.Stream);
+                        /////////TEMP///////////////
+                        /*myTask.AIChannels.CreateVoltageChannel(Channel, Name,
+                        AITerminalConfiguration.Rse, Convert.ToDouble(0),
+                            Convert.ToDouble(5), AIVoltageUnits.Volts);
+
+                        AnalogMultiChannelReader reader = new AnalogMultiChannelReader(myTask.Stream);*/
+                        ////////////////////////////
 
                         //Verify the Task
                         myTask.Control(TaskAction.Verify);
 
+                        timer.Interval = 500;
+                        timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Tick);
+                        timer.Start();
                         //keep reading
                         while (!worker.CancellationPending)
                         {
                             double[] data = reader.ReadSingleSample();
+                            Console.Write("\r({0})", data[0]);
 
                             //check if sample is different.
                             if (!data.InSampleWindow(previous))
                             {
+                                pulses++;
+                                /*Console.WriteLine("Bing!");
                                 if(data.LessThan(REFERENCE_VALUE)) {  
                                     southPulse = DateTime.Now - lastPulse; Console.WriteLine("it's north!");
                                 }
                                 else{ 
                                     northPulse = DateTime.Now - lastPulse; Console.WriteLine("it's south!");
-                                }
+                                }*/
                                 
                                 //assign reference values
                                 previous = data;
                                 lastPulse = DateTime.Now;
-
+                                /*
                                 //check round-trip time in ms.
                                 TimeSpan elapsed = northPulse + southPulse;
 
@@ -103,7 +119,7 @@ namespace MultiSampler
                                 else { 
                                     Console.WriteLine("{0}", -1*elapsed.Milliseconds);
                                     this.samplebox.Add(-1*elapsed.Milliseconds/1000);
-                                }
+                                }*/
                             }
                         }
                     }
@@ -117,7 +133,16 @@ namespace MultiSampler
 
         protected override void SampleBox_DataAcquired(double[] output)
         {
-            base.TriggerReadEvent(output.First());
+            //base.TriggerReadEvent(output.First());
+            //System.Console.Write("\r{0:0.00}", output.First());
+        }
+
+        void timer_Tick(object sender, EventArgs e)
+        {
+            timer.Stop();
+            //System.Console.Write("\rPulses in the past second: {0} ", pulses);
+            pulses = 0;
+            timer.Start();
         }
     }
 }

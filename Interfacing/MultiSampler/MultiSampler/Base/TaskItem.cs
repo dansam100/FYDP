@@ -21,7 +21,7 @@ namespace MultiSampler
         protected TcpClient connection;
         protected NetworkStream stream;
         
-        protected const string targetIP = "localhost";
+        protected const string targetIP = "127.0.0.1";
         protected const int port = 9191;
 
         protected SampleBox samplebox;
@@ -37,7 +37,7 @@ namespace MultiSampler
             this.samplebox = new SampleBox(5, 3);
 
             //TODO: this is for testing. remove later.
-            this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(samplebox_OnAverageAcquired);
+            //this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(samplebox_OnAverageAcquired);
 
             //TODO: actual functionality. re-enable
             this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(SampleBox_DataAcquired);
@@ -56,18 +56,22 @@ namespace MultiSampler
 
         protected void Connect()
         {
-            try
+            while (!this.connection.Connected)
             {
-                if(this.connection.Connected)
+                try
                 {
-                    this.connection.Close();
+                    if (this.connection.Connected)
+                    {
+                        this.connection.Close();
+                        this.connection = new TcpClient();
+                    }
+                    connection.Connect(targetIP, port);
+                    stream = connection.GetStream();
                 }
-                connection.Connect(targetIP, port);
-                stream = connection.GetStream();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Unable to connect to server.\nReason: {0}", e);
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unable to connect to server.\nReason: {0}", e);
+                }
             }
         }
 
@@ -87,7 +91,8 @@ namespace MultiSampler
                         stream.Write(buff, 0, outval.Length);
                         stream.Flush();
                     }
-                    catch (Exception e){ Console.WriteLine(e);   }
+                        catch (Exception e){ Console.WriteLine(e);   
+                    }
                 }
                 else Connect();
             }
