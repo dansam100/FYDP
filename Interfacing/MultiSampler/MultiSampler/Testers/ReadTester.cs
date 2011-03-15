@@ -9,7 +9,11 @@ namespace MultiSampler
     public class ReadTester : TaskItem
     {
         public ReadTester(string name) : base(name) { }
-        
+
+        protected override void SampleBox_DataAcquired(double[] output)
+        {
+        }
+
         public override void Test(BackgroundWorker worker)
         {
             try{
