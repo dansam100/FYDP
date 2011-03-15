@@ -8,10 +8,8 @@ namespace MultiSampler
 {
     public class ReadTester : TaskItem
     {
-        public ReadTester(string name) : base(name) { }
-
-        protected override void SampleBox_DataAcquired(double[] output)
-        {
+        public ReadTester(string name) : base(name) {
+            this.samplebox.RaiseEventOnAverage = true;
         }
 
         public override void Test(BackgroundWorker worker)

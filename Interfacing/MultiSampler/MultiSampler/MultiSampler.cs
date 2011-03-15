@@ -15,15 +15,15 @@ namespace MultiSampler
 
         public MultiSampler()
         {
-            //this.halleffectSampler = new Sampler(new HallEffectReader("HallEffectSensor"));
-            this.potSampler = new Sampler(new PotReader("Potentiometer"));
+            this.halleffectSampler = new Sampler(new HallEffectReader("HallEffectSensor"));
+            this.potSampler = new Sampler(new PotReader("Potentiometer", "127.0.0.1", 9192));
             //this.testSampler = new Sampler(new ReadTester("Test"));
         }
 
 
         public void BeginSampling()
         {
-            //this.halleffectSampler.Start();
+            this.halleffectSampler.Start();
             this.potSampler.Start();
             //this.testSampler.Start();
         }
@@ -32,8 +32,8 @@ namespace MultiSampler
         public void StopSampling()
         {
             //this.halleffectSampler.Stop();
-            this.potSampler.Stop();
-            //this.testSampler.Stop();
+            //this.potSampler.Stop();
+            this.testSampler.Stop();
         }
     }
 }

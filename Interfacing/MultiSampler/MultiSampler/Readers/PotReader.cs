@@ -15,7 +15,7 @@ namespace MultiSampler
         
         public PotReader(string name) : base(name) { this.Channel = CHANNEL; }
         public PotReader(string name, string channel) : base(name, channel) { }
-
+        public PotReader(string name, string targetIP, int port) : base(name, CHANNEL, targetIP, port) { }
 
         Timer timer = new Timer();
         bool sendData = false;

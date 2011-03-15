@@ -17,6 +17,9 @@ namespace MultiSampler
         public int Size { get; set; }
         public int Count { get; set; }
         public bool EnableAveraging { get; set; }
+        public bool RaiseEventOnAverage { get; set; }
+        public double CurrentAverage { get; set; }
+
         public double[][] Depth;
         public event AverageAcquiredHandler OnAverageAcquired;
 
@@ -31,6 +34,8 @@ namespace MultiSampler
             AveragingType = AveragingType.Polynomial;
 
             this.EnableAveraging = true;
+            this.RaiseEventOnAverage = false;
+
             if (size >= depth + 1)
             {
                 this.Size = size;
@@ -77,10 +82,7 @@ namespace MultiSampler
                 Depth[i] = Depth[i - 1].Linearize();
                 i++;
             }
-            if (this.OnAverageAcquired != null && EnableAveraging)
-                this.OnAverageAcquired(Depth[i - 1]);
-            else
-                this.OnAverageAcquired(Depth[0]);
+            this.RaiseAverageEvent(Depth[i - 1]);
         }
 
         /// <summary>
@@ -110,7 +112,17 @@ namespace MultiSampler
             {
                 Depth[0][x] = a * x + b;
             }
-            this.OnAverageAcquired(Depth[0]);
+            this.RaiseAverageEvent(Depth[0]);
+        }
+
+        public void RaiseAverageEvent(double[] values)
+        {
+            if (this.RaiseEventOnAverage && this.OnAverageAcquired != null)
+            {
+                this.OnAverageAcquired(values);
+            }
+
+            CurrentAverage = values.FirstOrDefault();
         }
 
         public override string ToString()

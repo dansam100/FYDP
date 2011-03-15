@@ -42,6 +42,8 @@ namespace MultiSampler
         };
 
         public State PreviousState { get; set; }
+
+        //TODO: Remove speed and direction if samplebox is enough.
         public double CurrentSpeed { get; set; }
         public Direction Direction { get; set; }
         
@@ -150,6 +152,10 @@ namespace MultiSampler
                             {
                                 //when inactivity time is exceeded, set it to zero.
                                 CurrentSpeed = 0d;
+                                lastUpdate = stopwatch.ElapsedMilliseconds;
+
+                                //add to the samplebox
+                                samplebox.Add(CurrentSpeed);
                             }
                         }
                     }
@@ -166,6 +172,9 @@ namespace MultiSampler
             long timeSum = Metrics[State.NorthState] + Metrics[State.SouthState];
             CurrentSpeed = CIRCUMFERENCE_WHEEL / (NUM_MAGNET_PAIRS * timeSum);
             Direction = (Metrics[State.NorthState] >= Metrics[State.SouthState]) ? Direction.Forward : Direction.Backward;
+
+            //add to the samplebox
+            samplebox.Add((int)(Direction) * CurrentSpeed);
         }
 
         public State GetState(double data)
@@ -191,7 +200,8 @@ namespace MultiSampler
         /// <param name="e"></param>
         void updateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
+            //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
+            base.TriggerReadEvent(samplebox.CurrentAverage);
         }
     }
 }
