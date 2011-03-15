@@ -31,9 +31,9 @@ namespace MultiSampler
 
         public void StopSampling()
         {
-            //this.halleffectSampler.Stop();
-            //this.potSampler.Stop();
-            this.testSampler.Stop();
+            this.halleffectSampler.Stop();
+            this.potSampler.Stop();
+            //this.testSampler.Stop();
         }
     }
 }
