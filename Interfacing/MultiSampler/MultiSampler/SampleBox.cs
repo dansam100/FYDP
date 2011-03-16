@@ -10,7 +10,7 @@ namespace MultiSampler
 
     public class SampleBox
     {
-        private Stack<double> contents;
+        private Queue<double> contents;
         public AveragingType AveragingType { get; set; }
 
         public int AveragingDepth { get; set; }
@@ -40,7 +40,7 @@ namespace MultiSampler
             {
                 this.Size = size;
                 this.Count = 0;
-                contents = new Stack<double>(Size);
+                contents = new Queue<double>(Size);
                 Depth = new double[depth+1][];
             }
             else throw new Exception("Size must be greater than depth!");
@@ -50,9 +50,21 @@ namespace MultiSampler
         {
             lock (this)
             {
-                contents.Push(sample);
-                if (Count < Size) { Count++; }
+                /*
+                if (!this.Filtered(sample))
+                {
+                    sample = CurrentAverage;
+                }
+                */
 
+                if (Count < Size) { Count++; }
+                if (this.contents.Count >= Size) { 
+                    this.contents.Dequeue(); 
+                }
+
+                contents.Enqueue(sample);
+                
+                //do the averaging
                 if (this.EnableAveraging)
                 {
                     switch (AveragingType)
@@ -70,13 +82,24 @@ namespace MultiSampler
             }
         }
 
+        private bool Filtered(double sample)
+        {
+            if (this.Count >= Size && CurrentAverage == 0.0d)
+            {
+                double expected = Depth[0].First();
+                double percentError = Math.Abs( (sample - expected) / expected);
+                return (percentError > 5);
+            }
+            return false;
+        }
+
         /// <summary>
         /// Perform an average of the current values in the samplebox to linearize the system
         /// </summary>
         internal void PerformAveraging()
         {
             int i = 1;
-            Depth[0] = (double[])contents.ToArray(Count);
+            Depth[0] = (double[])contents.ToArray();
             while (i <= AveragingDepth)
             {
                 Depth[i] = Depth[i - 1].Linearize();
@@ -91,7 +114,7 @@ namespace MultiSampler
         internal void Regress()
         {
             double yAvg = 0, xAvg = 0;
-            double[] values = (double[])contents.ToArray(Count);
+            double[] values = (double[])contents.ToArray();
             IEnumerable<int> xValues = (IEnumerable<int>)Enumerable.Range(0, values.Length);
 
             yAvg = values.Average();

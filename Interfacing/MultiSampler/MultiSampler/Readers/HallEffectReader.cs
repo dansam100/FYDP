@@ -16,19 +16,21 @@ namespace MultiSampler
     
     public class HallEffectReader : TaskItem
     {
+        //NOTE: Change the 'samplebox' averaging 
+        
         /// <summary>
         /// We need this for current readings
         /// </summary>
         public const int SHUNT_RESISTANCE = 249;
         public const double REFERENCE_VALUE = 0.0001d;              //external shunt resistance
         public const double CIRCUMFERENCE_WHEEL = 2.027d;         //wheel radius in meters
-        public const int NUM_MAGNET_PAIRS = 2;
+        public const int NUM_MAGNET_PAIRS = 1;
 
         private const int TIMER_INTERVAL = 100;
 
-        public const string CHANNEL = "Dev1/ai1";
+        public const string CHANNEL = "Dev1/ai2";
 
-        public const int INACTIVITY_THRESHOLD = 1000;
+        public const int INACTIVITY_THRESHOLD = 4 * TIMER_INTERVAL;
 
         static Stopwatch stopwatch;
         private Timer updateTimer;
@@ -93,7 +95,14 @@ namespace MultiSampler
                 stopwatch.Reset();
             }
         }
-
+        public State GetState(double data)
+        {
+            if (data > REFERENCE_VALUE)
+            {
+                return State.NorthState;
+            }
+            else return State.SouthState;
+        }
 
         public override void DoWork(BackgroundWorker worker)
         {           
@@ -102,7 +111,7 @@ namespace MultiSampler
                 try
                 {
                     //connect to the server first.
-                    this.Connect();
+                    //this.Connect();
                     this.SetupClock();
 
                     using (myTask = new Task())
@@ -118,13 +127,16 @@ namespace MultiSampler
                         //Verify the Task
                         myTask.Control(TaskAction.Verify);
 
+                        //initialize loop parameters and start timers.
                         double[] previousData = null;
+                        stopwatch.Start();
+                        updateTimer.Start();
 
                         //keep reading
                         while (!worker.CancellationPending)
                         {
                             double[] data = reader.ReadSingleSample();
-                            Console.Write("\r({0})", data[0]);
+                            //Console.Write("\r({0})", data[0]);
 
                             //TODO: Add computations for direction.             SUCKSEED
                             //TODO: Find a way to check for zero-speed.         SUCKSEED
@@ -137,7 +149,8 @@ namespace MultiSampler
                                 State currentState = GetState(data[0]);
                                 if (currentState != PreviousState)
                                 {
-                                    Metrics[PreviousState] = stopwatch.ElapsedMilliseconds - lastUpdate;
+                                    //put in the elapsed time in seconds.
+                                    Metrics[PreviousState] = (stopwatch.ElapsedMilliseconds - lastUpdate);
                                     lastUpdate = stopwatch.ElapsedMilliseconds;
                                     PreviousState = currentState;
 
@@ -169,21 +182,12 @@ namespace MultiSampler
 
         private void CalculateVelocity()
         {
-            long timeSum = Metrics[State.NorthState] + Metrics[State.SouthState];
-            CurrentSpeed = CIRCUMFERENCE_WHEEL / (NUM_MAGNET_PAIRS * timeSum);
+            long timeSum = (Metrics[State.NorthState] + Metrics[State.SouthState]);
+            CurrentSpeed = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
             Direction = (Metrics[State.NorthState] >= Metrics[State.SouthState]) ? Direction.Forward : Direction.Backward;
 
             //add to the samplebox
             samplebox.Add((int)(Direction) * CurrentSpeed);
-        }
-
-        public State GetState(double data)
-        {
-            if (data > REFERENCE_VALUE)
-            {
-                return State.NorthState;
-            }
-            else return State.SouthState;
         }
 
 
@@ -201,7 +205,10 @@ namespace MultiSampler
         void updateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
-            base.TriggerReadEvent(samplebox.CurrentAverage);
+            //base.TriggerReadEvent(samplebox.CurrentAverage);
+            Console.Clear();
+            Console.Write("Sending: {0:0.##}\r", samplebox.CurrentAverage);
+            //Console.Write("Sending: {0:0.0000}\r", (int)(Direction) * CurrentSpeed);
         }
     }
 }

@@ -41,7 +41,8 @@ namespace MultiSampler
             //tcp connection client
             this.connection = new TcpClient();
 
-            this.samplebox = new SampleBox(5, 3);
+            this.samplebox = new SampleBox(10, 5);
+            this.samplebox.AveragingType = AveragingType.Polynomial;
 
             //get the sampled values. this can be left to the derived classes.
             this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(SampleBox_DataAcquired);
