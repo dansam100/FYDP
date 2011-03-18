@@ -25,9 +25,11 @@ namespace MultiSampler
         public const double REFERENCE_VALUE = 0.0001d;              //external shunt resistance
         public const double CIRCUMFERENCE_WHEEL = 2.027d;         //wheel radius in meters
         public const int NUM_MAGNET_PAIRS = 3;
-        public const double SPEED_THRESHOLD = 1;
+        public const double SPEED_THRESHOLD = 1.5;
         public const double DEVIATION_MULTIPLIER = 1.5;
-        public const double DEVIATION_OFFSET = 10.0;
+        public const double DEVIATION_OFFSET = 1.0;
+
+        public int check = 0;
 
         private const int TIMER_INTERVAL = 100;
 
@@ -163,6 +165,23 @@ namespace MultiSampler
                                 {
                                     //put in the elapsed time in seconds.
                                     Metrics[PreviousState] = (stopwatch.ElapsedMilliseconds - lastUpdate);
+
+                                    //ensure that no anomalies in read times b/n north and south pulses occur.
+                                    if (Direction == Direction.Forward && currentState == State.SouthState)
+                                    {
+                                        if (Metrics[State.SouthState] > Metrics[State.NorthState])
+                                        {
+                                            Metrics[State.SouthState] = Metrics[State.NorthState] - 1;
+                                        }
+                                    }
+                                    else if (Direction == Direction.Backward && currentState == State.NorthState)
+                                    {
+                                        if (Metrics[State.NorthState] > Metrics[State.SouthState])
+                                        {
+                                            Metrics[State.NorthState] = Metrics[State.SouthState] - 1;
+                                        }
+                                    }
+
                                     lastUpdate = stopwatch.ElapsedMilliseconds;
                                     PreviousState = currentState;
 
@@ -195,19 +214,40 @@ namespace MultiSampler
         private void CalculateVelocity()
         {
             long timeSum = (Metrics[State.NorthState] + Metrics[State.SouthState]);
-            //int current = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
+            
             Direction dir = (Metrics[State.NorthState] >= Metrics[State.SouthState]) ? 
                 Direction.Forward : Direction.Backward;
+
             CurrentSpeed = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
 
-            if (CurrentSpeed < (samplebox.CurrentAverage * DEVIATION_MULTIPLIER + DEVIATION_OFFSET))
+            //if (Math.Abs(CurrentSpeed - samplebox.CurrentAverage) <
+            //    (samplebox.CurrentAverage * DEVIATION_MULTIPLIER + DEVIATION_OFFSET))
             {
-                if (Direction == Direction.None || (CurrentSpeed >= SPEED_THRESHOLD && dir != Direction))
+                //NOTE: no longer add values when we suspect that their directions went crazy
+                if (Direction == Direction.None)
                 {
                     Direction = dir;
                 }
-                //add to the samplebox
-                samplebox.Add((int)(Direction) * CurrentSpeed);
+                else if (!(CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && dir != Direction))
+                {
+                    Direction = dir;
+
+                    //add to the samplebox
+                    samplebox.Add((int)(Direction) * CurrentSpeed);
+                }
+                /* OLD METHOD: renable later if the above doesn't work.
+                else if (!(CurrentSpeed >= SPEED_THRESHOLD && dir != Direction))
+                {
+                    Direction = dir;
+                    //add to the samplebox
+                    samplebox.Add((int)(Direction) * CurrentSpeed);
+                }*/
+
+                //NOTE: remove this shit.
+                if (Direction == Direction.Backward)
+                {
+                    check = 1;
+                }
             }
         }
 
@@ -228,7 +268,9 @@ namespace MultiSampler
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
             //base.TriggerReadEvent(samplebox.CurrentAverage);
             Console.Clear();
-            Console.Write("Sending: {0:0.##}\r", samplebox.CurrentAverage);
+            Console.Write("Sending: {0:0.##}\n", samplebox.CurrentAverage);
+            Console.Write("Meanwhile: {0:0.##}\n", CurrentSpeed);
+            Console.Write("Was negative: {0}\n", check);
             //Console.Write("Sending: {0:0.0000}\r", (int)(Direction) * CurrentSpeed);
         }
     }

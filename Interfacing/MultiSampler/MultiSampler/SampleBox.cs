@@ -6,7 +6,7 @@ using System.Text;
 namespace MultiSampler
 {
     public delegate void AverageAcquiredHandler(double[] output);
-    public enum AveragingType { Regression, Polynomial }
+    public enum AveragingType { Regression, Polynomial, Simple }
 
     public class SampleBox
     {
@@ -31,7 +31,7 @@ namespace MultiSampler
         public SampleBox(int size, int depth)
         {
             this.AveragingDepth = depth;
-            AveragingType = AveragingType.Polynomial;
+            AveragingType = AveragingType.Simple;
 
             this.EnableAveraging = true;
             this.RaiseEventOnAverage = false;
@@ -50,13 +50,6 @@ namespace MultiSampler
         {
             lock (this)
             {
-                /*
-                if (!this.Filtered(sample))
-                {
-                    sample = CurrentAverage;
-                }
-                */
-
                 if (Count < Size) { Count++; }
                 if (this.contents.Count >= Size) { 
                     this.contents.Dequeue(); 
@@ -75,22 +68,14 @@ namespace MultiSampler
                         case AveragingType.Regression:
                             this.Regress();
                             break;
+                        case AveragingType.Simple:
+                            this.SimpleAverage();
+                            break;
                         default:
                             break;
                     }
                 }
             }
-        }
-
-        private bool Filtered(double sample)
-        {
-            if (this.Count >= Size && CurrentAverage == 0.0d)
-            {
-                double expected = Depth[0].First();
-                double percentError = Math.Abs( (sample - expected) / expected);
-                return (percentError > 5);
-            }
-            return false;
         }
 
         /// <summary>
@@ -135,6 +120,13 @@ namespace MultiSampler
             {
                 Depth[0][x] = a * x + b;
             }
+            this.RaiseAverageEvent(Depth[0].Reverse().ToArray());
+        }
+
+        internal void SimpleAverage()
+        {
+            double[] values = new double[]{contents.ToArray().Average()};
+            Depth[0] = values;
             this.RaiseAverageEvent(Depth[0]);
         }
 
@@ -154,7 +146,10 @@ namespace MultiSampler
             for (int i = 0; i <= AveragingDepth; i++)
             {
                 //result += ' '.Span(i*3)+Depth[i].ToString(true);
-                result += Depth[i].ToString(true);
+                if (Depth[i] != null)
+                {
+                    result += Depth[i].ToString(true);
+                }
             }
              
             return result;

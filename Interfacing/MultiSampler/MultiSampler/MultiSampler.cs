@@ -17,7 +17,7 @@ namespace MultiSampler
         {
             this.halleffectSampler = new Sampler(new HallEffectReader("HallEffectSensor", "127.0.0.1", 9192));
             this.potSampler = new Sampler(new PotReader("Potentiometer", "127.0.0.1", 9191));
-            //this.testSampler = new Sampler(new ReadTester("Test"));
+            this.testSampler = new Sampler(new ReadTester("Test"));
         }
 
 
