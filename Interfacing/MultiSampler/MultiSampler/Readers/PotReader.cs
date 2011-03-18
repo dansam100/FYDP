@@ -22,7 +22,7 @@ namespace MultiSampler
 
         public override void DoWork(BackgroundWorker worker)
         {
-            timer.Interval = 50;
+            timer.Interval = 100;
             timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Tick);
             timer.Start();
 
@@ -53,13 +53,14 @@ namespace MultiSampler
                         {
                             if (!sendData) continue;
 
-                            data = reader.ReadSingleSample();
+                            //data = reader.ReadSingleSample();
+                            data = DoRead(reader);
 
                             angle = -(data[0]/(4.4/270) - 270/2);
                             //Console.Write(string.Format("{0:0.00}\r", angle));
 
                             base.TriggerReadEvent(angle);
-                            System.Console.Write("\rSending {0:0.00}", Math.Round(angle, 2));
+                            System.Console.Write("Sending {0:0.00}", Math.Round(angle, 2));
                             
                             //NOTE: Looks like we don't need this part afterall.
                             //I made the mistake of recreating the network stream everytime we wanted

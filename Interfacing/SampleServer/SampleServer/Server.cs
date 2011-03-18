@@ -38,7 +38,7 @@ namespace SampleServer
 
         void clientListener_DataReceived(string response)
         {
-            Console.WriteLine("Received: " + response);
+            Console.Write("Received: {0}\r", response);
         }
     }
 }

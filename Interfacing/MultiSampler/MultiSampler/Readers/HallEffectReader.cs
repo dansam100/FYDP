@@ -12,7 +12,7 @@ using System.Timers;
 namespace MultiSampler
 {
     public enum State { NorthState, SouthState }
-    public enum Direction { Forward = 1, Backward = -1 }
+    public enum Direction { Forward = 1, Backward = -1, None = 0 }
     
     public class HallEffectReader : TaskItem
     {
@@ -24,7 +24,10 @@ namespace MultiSampler
         public const int SHUNT_RESISTANCE = 249;
         public const double REFERENCE_VALUE = 0.0001d;              //external shunt resistance
         public const double CIRCUMFERENCE_WHEEL = 2.027d;         //wheel radius in meters
-        public const int NUM_MAGNET_PAIRS = 1;
+        public const int NUM_MAGNET_PAIRS = 3;
+        public const double SPEED_THRESHOLD = 1;
+        public const double DEVIATION_MULTIPLIER = 1.5;
+        public const double DEVIATION_OFFSET = 10.0;
 
         private const int TIMER_INTERVAL = 100;
 
@@ -83,7 +86,14 @@ namespace MultiSampler
             updateTimer.Interval = TIMER_INTERVAL;
             updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
         }
-
+        public HallEffectReader(string name, string targetIP, int port)
+            : base(name, CHANNEL, targetIP, port)
+        {
+            updateTimer = new Timer();
+            updateTimer.Interval = TIMER_INTERVAL;
+            updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
+            Direction = Direction.None;
+        }
         public void SetupClock()
         {
             if (stopwatch.IsRunning)
@@ -135,7 +145,9 @@ namespace MultiSampler
                         //keep reading
                         while (!worker.CancellationPending)
                         {
-                            double[] data = reader.ReadSingleSample();
+                            //double[] data = reader.ReadSingleSample();
+                            double[] data = DoRead(reader);
+                            
                             //Console.Write("\r({0})", data[0]);
 
                             //TODO: Add computations for direction.             SUCKSEED
@@ -183,11 +195,20 @@ namespace MultiSampler
         private void CalculateVelocity()
         {
             long timeSum = (Metrics[State.NorthState] + Metrics[State.SouthState]);
+            //int current = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
+            Direction dir = (Metrics[State.NorthState] >= Metrics[State.SouthState]) ? 
+                Direction.Forward : Direction.Backward;
             CurrentSpeed = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
-            Direction = (Metrics[State.NorthState] >= Metrics[State.SouthState]) ? Direction.Forward : Direction.Backward;
 
-            //add to the samplebox
-            samplebox.Add((int)(Direction) * CurrentSpeed);
+            if (CurrentSpeed < (samplebox.CurrentAverage * DEVIATION_MULTIPLIER + DEVIATION_OFFSET))
+            {
+                if (Direction == Direction.None || (CurrentSpeed >= SPEED_THRESHOLD && dir != Direction))
+                {
+                    Direction = dir;
+                }
+                //add to the samplebox
+                samplebox.Add((int)(Direction) * CurrentSpeed);
+            }
         }
 
 

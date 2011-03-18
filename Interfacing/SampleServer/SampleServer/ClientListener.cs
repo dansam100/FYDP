@@ -99,9 +99,10 @@ namespace SampleServer
                         stream.Read(bytes, 0, bytes.Length);
 
                         // Translate data bytes to a ASCII string.
-                        data = System.Text.Encoding.ASCII.GetString(bytes, 0, bytes.Length);
-                        data = data.TrimEnd('\0');
-
+                        ///data = System.Text.Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+                        //data = data.TrimEnd('\0');
+                        data = System.BitConverter.ToDouble(bytes, 0).ToString();
+                        
                         //bubble the response to the application level
                         if(DataReceived != null)
                             this.DataReceived(data);
