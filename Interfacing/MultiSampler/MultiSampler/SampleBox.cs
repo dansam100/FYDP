@@ -137,7 +137,8 @@ namespace MultiSampler
                 this.OnAverageAcquired(values);
             }
 
-            CurrentAverage = values.FirstOrDefault();
+            //CurrentAverage = values.Average();
+            CurrentAverage = values.First();
         }
 
         public override string ToString()
@@ -145,7 +146,6 @@ namespace MultiSampler
             string result = string.Empty;
             for (int i = 0; i <= AveragingDepth; i++)
             {
-                //result += ' '.Span(i*3)+Depth[i].ToString(true);
                 if (Depth[i] != null)
                 {
                     result += Depth[i].ToString(true);

@@ -23,25 +23,25 @@ namespace MultiSampler
         /// </summary>
         public const int SHUNT_RESISTANCE = 249;
         public const double REFERENCE_VALUE = 0.0001d;              //external shunt resistance
-        public const double CIRCUMFERENCE_WHEEL = 2.027d;         //wheel radius in meters
+        public const double CIRCUMFERENCE_WHEEL = 2.027d;           //wheel radius in meters
         public const int NUM_MAGNET_PAIRS = 3;
         public const double SPEED_THRESHOLD = 1.5;
         public const double DEVIATION_MULTIPLIER = 1.5;
         public const double DEVIATION_OFFSET = 1.0;
-
-        public int check = 0;
-
-        private const int TIMER_INTERVAL = 100;
-
-        public const string CHANNEL = "Dev1/ai2";
-
+        public const int TIMER_INTERVAL = 100;
         public const int INACTIVITY_THRESHOLD = 4 * TIMER_INTERVAL;
+        
+        public const string CHANNEL = "Dev1/ai2";
 
         static Stopwatch stopwatch;
         private Timer updateTimer;
 
         static long lastUpdate;
 
+
+        /// <summary>
+        /// Metrics table to keep track of read times.
+        /// </summary>
         public static Dictionary<State, long> Metrics = new Dictionary<State, long>
         {
             {State.NorthState, 0L},
@@ -53,7 +53,11 @@ namespace MultiSampler
         //TODO: Remove speed and direction if samplebox is enough.
         public double CurrentSpeed { get; set; }
         public Direction Direction { get; set; }
-        
+
+        #region Constructors...
+        /// <summary>
+        /// static constructor
+        /// </summary>
         static HallEffectReader()
         {
             stopwatch = new Stopwatch();
@@ -96,6 +100,9 @@ namespace MultiSampler
             updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
             Direction = Direction.None;
         }
+        #endregion
+
+
         public void SetupClock()
         {
             if (stopwatch.IsRunning)
@@ -211,6 +218,9 @@ namespace MultiSampler
             }
         }
 
+        /// <summary>
+        /// Calculate the new velocity of the system
+        /// </summary>
         private void CalculateVelocity()
         {
             long timeSum = (Metrics[State.NorthState] + Metrics[State.SouthState]);
@@ -220,42 +230,18 @@ namespace MultiSampler
 
             CurrentSpeed = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
 
-            //if (Math.Abs(CurrentSpeed - samplebox.CurrentAverage) <
-            //    (samplebox.CurrentAverage * DEVIATION_MULTIPLIER + DEVIATION_OFFSET))
+            //NOTE: no longer add values when we suspect that their directions went crazy
+            if (Direction == Direction.None)
             {
-                //NOTE: no longer add values when we suspect that their directions went crazy
-                if (Direction == Direction.None)
-                {
-                    Direction = dir;
-                }
-                else if (!(CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && dir != Direction))
-                {
-                    Direction = dir;
-
-                    //add to the samplebox
-                    samplebox.Add((int)(Direction) * CurrentSpeed);
-                }
-                /* OLD METHOD: renable later if the above doesn't work.
-                else if (!(CurrentSpeed >= SPEED_THRESHOLD && dir != Direction))
-                {
-                    Direction = dir;
-                    //add to the samplebox
-                    samplebox.Add((int)(Direction) * CurrentSpeed);
-                }*/
-
-                //NOTE: remove this shit.
-                if (Direction == Direction.Backward)
-                {
-                    check = 1;
-                }
+                Direction = dir;
             }
-        }
+            else if (!(CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && dir != Direction))
+            {
+                Direction = dir;
 
-
-        protected override void SampleBox_DataAcquired(double[] output)
-        {
-            //base.TriggerReadEvent(output.First());
-            //System.Console.Write("\r{0:0.00}", output.First());
+                //add to the samplebox
+                samplebox.Add((int)(Direction) * CurrentSpeed);
+            }
         }
 
         /// <summary>
@@ -270,7 +256,6 @@ namespace MultiSampler
             Console.Clear();
             Console.Write("Sending: {0:0.##}\n", samplebox.CurrentAverage);
             Console.Write("Meanwhile: {0:0.##}\n", CurrentSpeed);
-            Console.Write("Was negative: {0}\n", check);
             //Console.Write("Sending: {0:0.0000}\r", (int)(Direction) * CurrentSpeed);
         }
     }
