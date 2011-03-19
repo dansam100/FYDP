@@ -231,11 +231,13 @@ namespace MultiSampler
             CurrentSpeed = (CIRCUMFERENCE_WHEEL * 1000) / (NUM_MAGNET_PAIRS * timeSum);
 
             //NOTE: no longer add values when we suspect that their directions went crazy
+            //for a value to not be 'crazy', it must have reduced to at least 70% of the original value
+            //and yet still be above '0'.
             if (Direction == Direction.None)
             {
                 Direction = dir;
             }
-            else if (!(CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && dir != Direction))
+            else if (!( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
             {
                 Direction = dir;
 
