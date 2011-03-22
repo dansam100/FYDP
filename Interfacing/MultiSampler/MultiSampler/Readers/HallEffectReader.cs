@@ -13,11 +13,13 @@ namespace MultiSampler
 {
     public enum State { NorthState, SouthState }
     public enum Direction { Forward = 1, Backward = -1, None = 0 }
-    
+
     public class HallEffectReader : TaskItem
     {
         //NOTE: Change the 'samplebox' averaging 
-        
+
+        const bool FORWARD_ONLY = false;
+
         /// <summary>
         /// We need this for current readings
         /// </summary>
@@ -130,7 +132,7 @@ namespace MultiSampler
                 try
                 {
                     //connect to the server first.
-                    //this.Connect();
+                    this.Connect();
                     this.SetupClock();
 
                     using (myTask = new Task())
@@ -206,7 +208,7 @@ namespace MultiSampler
                                 lastUpdate = stopwatch.ElapsedMilliseconds;
 
                                 //add to the samplebox
-                                samplebox.Add(CurrentSpeed);
+                                samplebox.Add(FORWARD_ONLY ? Math.Abs(CurrentSpeed) : CurrentSpeed);
                             }
                         }
                     }
@@ -242,7 +244,7 @@ namespace MultiSampler
                 Direction = dir;
 
                 //add to the samplebox
-                samplebox.Add((int)(Direction) * CurrentSpeed);
+                samplebox.Add(FORWARD_ONLY ? Math.Abs(CurrentSpeed) : (int)(Direction) * CurrentSpeed);
             }
         }
 
@@ -254,10 +256,10 @@ namespace MultiSampler
         void updateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
-            //base.TriggerReadEvent(samplebox.CurrentAverage);
+            base.TriggerReadEvent(CurrentSpeed == 0.0d ? 0 : samplebox.CurrentAverage);
             Console.Clear();
-            Console.Write("Sending: {0:0.##}\n", samplebox.CurrentAverage);
-            Console.Write("Meanwhile: {0:0.##}\n", CurrentSpeed);
+            Console.Write("Sending: {0:0.##}\n", CurrentSpeed == 0.0d ? 0 : samplebox.CurrentAverage);
+            Console.Write("Meanwhile: {0:0.##}\n", (int)(Direction) * CurrentSpeed);
             //Console.Write("Sending: {0:0.0000}\r", (int)(Direction) * CurrentSpeed);
         }
     }

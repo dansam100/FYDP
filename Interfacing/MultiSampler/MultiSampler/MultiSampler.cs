@@ -24,7 +24,7 @@ namespace MultiSampler
         public void BeginSampling()
         {
             this.halleffectSampler.Start();
-            //this.potSampler.Start();
+            this.potSampler.Start();
             //this.testSampler.Start();
         }
 
@@ -32,7 +32,7 @@ namespace MultiSampler
         public void StopSampling()
         {
             this.halleffectSampler.Stop();
-            //this.potSampler.Stop();
+            this.potSampler.Stop();
             //this.testSampler.Stop();
         }
     }

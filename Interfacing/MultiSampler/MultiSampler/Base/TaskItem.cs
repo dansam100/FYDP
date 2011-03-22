@@ -17,7 +17,7 @@ namespace MultiSampler
         public const string DEFAULT_IP = "127.0.0.1";
         public const int DEFAULT_PORT = 9191;
 
-        protected object DAQmx_ADC = new object();
+        protected static object DAQmx_ADC = new object();
         
         public string Name{ get; set; }
         public string Channel { get; set; }
