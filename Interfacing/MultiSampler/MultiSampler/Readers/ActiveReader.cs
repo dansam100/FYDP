@@ -5,7 +5,6 @@ using System.Text;
 using System.Timers;
 using NationalInstruments.DAQmx;
 using System.ComponentModel;
-using System.Threading;
 
 namespace MultiSampler.Readers
 {
@@ -22,7 +21,7 @@ namespace MultiSampler.Readers
 
         public override void DoWork(BackgroundWorker worker)
         {
-            updateTimer = new Timer();
+            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = 100;
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(UpdateTimer_Tick);
             updateTimer.Start();
