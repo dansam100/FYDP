@@ -235,16 +235,13 @@ namespace MultiSampler
             //NOTE: no longer add values when we suspect that their directions went crazy
             //for a value to not be 'crazy', it must have reduced to at least 70% of the original value
             //and yet still be above '0'.
-            if (Direction == Direction.None)
-            {
-                Direction = dir;
-            }
-            else if (!( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
+            if (Direction == Direction.None || 
+                !( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
             {
                 Direction = dir;
 
                 //add to the samplebox
-                samplebox.Add(FORWARD_ONLY ? Math.Abs(CurrentSpeed) : (int)(Direction) * CurrentSpeed);
+                samplebox.Add(FORWARD_ONLY ? CurrentSpeed : (int)(Direction) * CurrentSpeed);
             }
         }
 
