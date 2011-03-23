@@ -36,7 +36,6 @@ namespace MultiSampler
         public const string CHANNEL = "Dev1/ai2";
 
         static Stopwatch stopwatch;
-        private System.Timers.Timer updateTimer;
 
         int trigger = 1;
 
@@ -77,7 +76,6 @@ namespace MultiSampler
         {
             this.Channel = CHANNEL;
 
-            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
@@ -85,21 +83,18 @@ namespace MultiSampler
         public HallEffectReader(string name, string channel)
             : base(name, channel)
         {
-            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
         public HallEffectReader(string name, string channel, string targetIP, int port)
             : base(name, channel, targetIP, port)
         {
-            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
         public HallEffectReader(string name, string targetIP, int port)
             : base(name, CHANNEL, targetIP, port)
         {
-            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
             updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
             Direction = Direction.None;

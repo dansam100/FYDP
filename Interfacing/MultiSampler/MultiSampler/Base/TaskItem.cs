@@ -34,6 +34,8 @@ namespace MultiSampler
 
         protected Thread ExtraThread;
 
+        protected System.Timers.Timer updateTimer;
+
         public event DataReadEventHandler OnEventRead;
         public event CharReadEventHandler OnCharRead;
 
@@ -51,6 +53,9 @@ namespace MultiSampler
 
             //get the sampled values. this can be left to the derived classes.
             this.samplebox.OnAverageAcquired += new AverageAcquiredHandler(SampleBox_DataAcquired);
+
+            //initialize update timer
+            updateTimer = new System.Timers.Timer();
 
             this.OnEventRead += new DataReadEventHandler(TaskItem_OnEventRead);
             this.OnCharRead += new CharReadEventHandler(TaskItem_OnEventCharRead);
