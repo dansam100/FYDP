@@ -236,22 +236,26 @@ namespace MultiSampler
         public void WatchTrigger()
         {
             //Create a virtual channel
-            Task dirTask = new Task();
-            dirTask.AIChannels.CreateVoltageChannel(Channel, Name,
-                            AITerminalConfiguration.Rse, Convert.ToDouble(0),
-                                Convert.ToDouble(5), AIVoltageUnits.Volts);
-            //initialize the reader
-            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(dirTask.Stream);
-
-            //Verify the Task
-            dirTask.Control(TaskAction.Verify);
-
-            bool signal = false;
-
-            while (true)
+            using (Task dirTask = new Task())
             {
-                signal = ((double)Math.Round(DoRead(reader).First(), 2) > 0);
-                trigger = (signal) ? 1 : -1;
+                dirTask.AIChannels.CreateVoltageChannel("Dev1/ai3", "TriggerRead",
+                                AITerminalConfiguration.Rse, Convert.ToDouble(0),
+                                    Convert.ToDouble(5), AIVoltageUnits.Volts);
+                //initialize the reader
+                AnalogMultiChannelReader reader = new AnalogMultiChannelReader(dirTask.Stream);
+
+                //Verify the Task
+                dirTask.Control(TaskAction.Verify);
+
+                bool signal = false;
+
+                while (true)
+                {
+                    signal = (Math.Round(DoRead(reader).First(), 2) > 0);
+                    //Console.WriteLine("Shit is:" + DoRead(reader).First());
+                    trigger = (signal) ? -1 : 1;
+                    Thread.Sleep(50);
+                }
             }
         }
 
@@ -270,7 +274,12 @@ namespace MultiSampler
             //NOTE: no longer add values when we suspect that their directions went crazy
             //for a value to not be 'crazy', it must have reduced to at least 70% of the original value
             //and yet still be above '0'.
-            if (Direction == Direction.None || 
+            if (FORWARD_ONLY)
+            {
+                samplebox.Add(CurrentSpeed);
+            }
+
+            else if (Direction == Direction.None || 
                 !( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
             {
                 Direction = dir;
@@ -288,10 +297,10 @@ namespace MultiSampler
         void updateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
-            base.TriggerReadEvent(/*CurrentSpeed == 0.0d ? 0 : */samplebox.CurrentAverage);
+            base.TriggerReadEvent(/*CurrentSpeed == 0.0d ? 0 : */trigger * samplebox.CurrentAverage);
             Console.Clear();
-            Console.Write("Sending: {0:0.##}\n", CurrentSpeed == 0.0d ? 0 : samplebox.CurrentAverage);
-            Console.Write("Meanwhile: {0:0.##}\n", (int)(Direction) * CurrentSpeed);
+            Console.Write("Sending: {0:0.##}\n", trigger * samplebox.CurrentAverage);
+            //Console.Write("Meanwhile: {0:0.##}\n", (int)(Direction) * CurrentSpeed);
             //Console.Write("Sending: {0:0.0000}\r", (int)(Direction) * CurrentSpeed);
         }
     }
