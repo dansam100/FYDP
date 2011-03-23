@@ -64,7 +64,6 @@ namespace MultiSampler
                         }
                     }
                 }
-
                 catch (Exception e)
                 {
                     Console.WriteLine("{0} Read Failed.\nReason: {1}", Name, e);

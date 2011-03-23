@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Net.Sockets;
 using System.IO;
 using System.Diagnostics;
-using System.Timers;
+using System.Threading;
 
 namespace MultiSampler
 {
@@ -36,7 +36,9 @@ namespace MultiSampler
         public const string CHANNEL = "Dev1/ai2";
 
         static Stopwatch stopwatch;
-        private Timer updateTimer;
+        private System.Timers.Timer updateTimer;
+
+        int trigger = 1;
 
         static long lastUpdate;
 
@@ -75,35 +77,34 @@ namespace MultiSampler
         {
             this.Channel = CHANNEL;
 
-            updateTimer = new Timer();
+            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
-            updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
+            updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
 
         public HallEffectReader(string name, string channel)
             : base(name, channel)
         {
-            updateTimer = new Timer();
+            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
-            updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
+            updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
         public HallEffectReader(string name, string channel, string targetIP, int port)
             : base(name, channel, targetIP, port)
         {
-            updateTimer = new Timer();
+            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
-            updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
+            updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
         }
         public HallEffectReader(string name, string targetIP, int port)
             : base(name, CHANNEL, targetIP, port)
         {
-            updateTimer = new Timer();
+            updateTimer = new System.Timers.Timer();
             updateTimer.Interval = TIMER_INTERVAL;
-            updateTimer.Elapsed += new ElapsedEventHandler(updateTimer_Elapsed);
+            updateTimer.Elapsed += new System.Timers.ElapsedEventHandler(updateTimer_Elapsed);
             Direction = Direction.None;
         }
         #endregion
-
 
         public void SetupClock()
         {
@@ -134,6 +135,10 @@ namespace MultiSampler
                     //connect to the server first.
                     this.Connect();
                     this.SetupClock();
+                    if (FORWARD_ONLY)
+                    {
+                        this.StartTriggerWatcher();
+                    }
 
                     using (myTask = new Task())
                     {
@@ -208,7 +213,7 @@ namespace MultiSampler
                                 lastUpdate = stopwatch.ElapsedMilliseconds;
 
                                 //add to the samplebox
-                                samplebox.Add(FORWARD_ONLY ? Math.Abs(CurrentSpeed) : CurrentSpeed);
+                                samplebox.Add(FORWARD_ONLY ? CurrentSpeed : CurrentSpeed);
                             }
                         }
                     }
@@ -217,6 +222,36 @@ namespace MultiSampler
                     Console.WriteLine(e.Message);
                 }
                 catch (Exception e) { Console.WriteLine(e.Message); }
+            }
+        }
+
+        private void StartTriggerWatcher()
+        {
+            ThreadStart start = new ThreadStart(WatchTrigger);
+            ExtraThread = new Thread(start);
+            ExtraThread.IsBackground = true;
+            ExtraThread.Start();
+        }
+
+        public void WatchTrigger()
+        {
+            //Create a virtual channel
+            Task dirTask = new Task();
+            dirTask.AIChannels.CreateVoltageChannel(Channel, Name,
+                            AITerminalConfiguration.Rse, Convert.ToDouble(0),
+                                Convert.ToDouble(5), AIVoltageUnits.Volts);
+            //initialize the reader
+            AnalogMultiChannelReader reader = new AnalogMultiChannelReader(dirTask.Stream);
+
+            //Verify the Task
+            dirTask.Control(TaskAction.Verify);
+
+            bool signal = false;
+
+            while (true)
+            {
+                signal = ((double)Math.Round(DoRead(reader).First(), 2) > 0);
+                trigger = (signal) ? 1 : -1;
             }
         }
 
@@ -235,16 +270,13 @@ namespace MultiSampler
             //NOTE: no longer add values when we suspect that their directions went crazy
             //for a value to not be 'crazy', it must have reduced to at least 70% of the original value
             //and yet still be above '0'.
-            if (Direction == Direction.None)
-            {
-                Direction = dir;
-            }
-            else if (!( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
+            if (Direction == Direction.None || 
+                !( (CurrentSpeed >= (0.7 * samplebox.CurrentAverage) && CurrentSpeed >= 0.5) && dir != Direction))
             {
                 Direction = dir;
 
                 //add to the samplebox
-                samplebox.Add(FORWARD_ONLY ? Math.Abs(CurrentSpeed) : (int)(Direction) * CurrentSpeed);
+                samplebox.Add(FORWARD_ONLY ? trigger*CurrentSpeed : (int)(Direction) * CurrentSpeed);
             }
         }
 
@@ -253,7 +285,7 @@ namespace MultiSampler
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void updateTimer_Elapsed(object sender, ElapsedEventArgs e)
+        void updateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
             base.TriggerReadEvent(/*CurrentSpeed == 0.0d ? 0 : */samplebox.CurrentAverage);

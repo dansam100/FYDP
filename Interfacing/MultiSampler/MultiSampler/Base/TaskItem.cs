@@ -6,6 +6,7 @@ using NationalInstruments.DAQmx;
 using System.Net.Sockets;
 using System.ComponentModel;
 using System.Collections;
+using System.Threading;
 
 namespace MultiSampler
 {
@@ -30,6 +31,8 @@ namespace MultiSampler
         protected int Port { get; set; }
 
         protected SampleBox samplebox;
+
+        protected Thread ExtraThread;
 
         public event DataReadEventHandler OnEventRead;
         public event CharReadEventHandler OnCharRead;
