@@ -18,7 +18,7 @@ namespace MultiSampler
     {
         //NOTE: Change the 'samplebox' averaging 
 
-        const bool FORWARD_ONLY = false;
+        const bool FORWARD_ONLY = true;
 
         /// <summary>
         /// We need this for current readings
@@ -256,7 +256,7 @@ namespace MultiSampler
         void updateTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             //base.TriggerReadEvent((int)(Direction) * CurrentSpeed);
-            base.TriggerReadEvent(CurrentSpeed == 0.0d ? 0 : samplebox.CurrentAverage);
+            base.TriggerReadEvent(/*CurrentSpeed == 0.0d ? 0 : */samplebox.CurrentAverage);
             Console.Clear();
             Console.Write("Sending: {0:0.##}\n", CurrentSpeed == 0.0d ? 0 : samplebox.CurrentAverage);
             Console.Write("Meanwhile: {0:0.##}\n", (int)(Direction) * CurrentSpeed);

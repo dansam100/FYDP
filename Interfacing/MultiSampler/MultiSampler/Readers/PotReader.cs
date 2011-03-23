@@ -57,9 +57,10 @@ namespace MultiSampler
                             data = DoRead(reader);
 
                             angle = -(data[0]/(4.4/270) - 270/2);
+                            angle /= 2;
                             base.TriggerReadEvent(angle);
                             System.Console.Write("Sending {0:0.00}", Math.Round(angle, 2));
-                            sendData = false;
+                             sendData = false;
                         }
                     }
                 }
